@@ -6,3 +6,4 @@ edition = "2018"
 
 [dependencies]
 nannou = "0.14"
+bitvec = "0.19"
