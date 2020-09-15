@@ -1,4 +1,3 @@
-use bitvec::prelude::*;
 use nannou::prelude::*;
 
 const CELL_SIZE: f32 = 50.0;
@@ -9,22 +8,27 @@ fn main() {
 }
 
 struct Row {
-    cells: BitVec,
+    cells: [bool; 16],
 }
 
 impl Row {
     pub fn new() -> Self {
         Self {
-            cells: bitvec![0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            cells: [
+                false, false, false, false, false, false, false, false, false, false, false, false,
+                false, false, false, false,
+            ],
         }
     }
 
-    pub fn rects(&self) -> Vec<Rect> {
+    pub fn get_rects(&self, top_left: Point2<f32>) -> Vec<Rect> {
         let mut rects = Vec::with_capacity(self.cells.len());
         for i in 0..self.cells.len() {
-            rects.push(
-                Rect::from_w_h(CELL_SIZE, CELL_SIZE).shift_x(i as f32 * (CELL_SIZE + GAP_SIZE)),
-            )
+            let rect = Rect::from_w_h(CELL_SIZE, CELL_SIZE)
+                .shift_x(top_left.x + CELL_SIZE)
+                .shift_y(top_left.y - CELL_SIZE)
+                .shift_x(i as f32 * (CELL_SIZE + GAP_SIZE));
+            rects.push(rect)
         }
         rects
     }
@@ -43,8 +47,6 @@ fn model(_app: &App) -> Model {
             Row::new(),
             Row::new(),
             Row::new(),
-            Row::new(),
-            Row::new(),
         ],
     }
 }
@@ -53,12 +55,17 @@ fn update(_app: &App, _model: &mut Model, _update: Update) {}
 
 fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
-    draw.background().color(BLACK);
-    draw.ellipse().color(WHITE).xy(app.mouse.position());
+    let window = app.window_rect();
 
-    for row in &model.rows {
-        for rect in row.rects() {
-            draw.rect().xy(rect.xy()).wh(rect.wh()).color(WHITE);
+    draw.background().color(BLACK);
+
+    for (i, row) in model.rows.iter().enumerate() {
+        for rect in row.get_rects(window.top_left()) {
+            draw.rect()
+                .y(rect.y() - i as f32 * (CELL_SIZE + GAP_SIZE))
+                .x(rect.x())
+                .wh(rect.wh())
+                .color(WHITE);
         }
     }
 
