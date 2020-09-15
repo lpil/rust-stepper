@@ -6,3 +6,5 @@ version = "0.1.0"
 
 [dependencies]
 nannou = "0.14"
+nannou_audio = "0.14"
+audrey = "0.2"
