@@ -2,6 +2,7 @@ use nannou::prelude::*;
 
 const CELL_SIZE: f32 = 50.0;
 const GAP_SIZE: f32 = 10.0;
+const INCREMENT_EVERY: usize = 15;
 
 fn main() {
     nannou::app(model).update(update).view(view).run();
@@ -51,6 +52,8 @@ impl Row {
 }
 
 struct Model {
+    step: usize,
+    frame: usize,
     rows: Vec<Row>,
 }
 
@@ -70,6 +73,8 @@ fn model(app: &App) -> Model {
         .unwrap();
     let window = app.window_rect();
     Model {
+        step: 0,
+        frame: 0,
         rows: vec![
             Row::new(window.left(), window.top() - 0. * (CELL_SIZE + GAP_SIZE)),
             Row::new(window.left(), window.top() - 1. * (CELL_SIZE + GAP_SIZE)),
@@ -81,7 +86,14 @@ fn model(app: &App) -> Model {
     }
 }
 
-fn update(_app: &App, _model: &mut Model, _update: Update) {}
+fn update(_app: &App, model: &mut Model, _update: Update) {
+    if model.frame > INCREMENT_EVERY {
+        model.frame = 0;
+        model.step = (model.step + 1) % 16;
+    } else {
+        model.frame = model.frame + 1;
+    }
+}
 
 fn mouse_pressed(app: &App, model: &mut Model, _button: MouseButton) {
     model.click(app.mouse.position())
@@ -95,9 +107,11 @@ fn view(app: &App, model: &Model, frame: Frame) {
     draw.background().color(BLACK);
 
     for row in model.rows.iter() {
-        for (rect, active) in row.get_rects() {
+        for (i, (rect, active)) in row.get_rects().into_iter().enumerate() {
             let color = if active {
                 pink.clone()
+            } else if model.step == i {
+                grey.clone()
             } else if rect.contains(app.mouse.position()) {
                 grey.clone()
             } else {
